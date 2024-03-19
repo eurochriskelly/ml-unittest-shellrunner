@@ -31,8 +31,14 @@ To execute the script:
       --directory /path/to/ml-repository-to-test \
       --test_port 8123
 
-
 Default test port is 8010 and default directory is the current directory
+
+### Example: run all tests from number 10 onwards
+
+    bash scripts/run_unit_tests.sh \
+      --directory /path/to/ml-repository-to-test \
+      --test_port 8123 \
+      --after 10
 
 ## Output
 

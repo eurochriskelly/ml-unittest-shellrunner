@@ -14,7 +14,6 @@ main() {
 	# get starting memory after restart
 	local startingFreeMemory=$(getFreeMemory)
 
-
 	echo "  TIME  SUITE                                                                                               ERRS FAIL  TOTAL       TIME  USED  FREE"
 	local startTimer=$(date +%s)
 
@@ -30,7 +29,11 @@ main() {
 	fi
 	limit=1000
 
-	echo "$testSuiteData" | xmlstarlet sel -t -m "//t:suite" -v "@path" -n | head -n $limit |
+	testNr=$AFTER # starting test number
+	echo "$testSuiteData" |
+		xmlstarlet sel -t -m "//t:suite" -v "@path" -n |
+		head -n $limit |
+		awk -v line_num="$AFTER" 'NR >= line_num' |
 		while read -r suite; do
 			memBefore=$(getFreeMemory)
 			executeTestSuite "$suite" | while read -r line; do
@@ -52,7 +55,7 @@ main() {
 
 			if [ -f "$STOP_ON_FAIL" ]; then
 				echo ""
-				echo "  WARNING: UNIT TEST FAILURE. Please fix. See LOG message below for details."
+				echo "  WARNING: UNIT TEST FAILURE (test #${testNr}). Please fix. See LOG message below for details."
 				rm -f "$STOP_ON_FAIL"
 				echo "------ LOG ------"
 				cat $LOG
@@ -60,6 +63,7 @@ main() {
 				exit 1
 				break
 			fi
+			testNr=$((testNr + 1))
 			# require if we are using 6GB more than when we started
 			if [ "$(($startingFreeMemory - $(getFreeMemory)))" -gt "6000000" ]; then
 				restartMarkLogic
@@ -213,13 +217,21 @@ testRun() {
 			if [ "$1" == "--directory" ]; then
 				shift
 				cd "$1"
-				break
+				shift
+				echo "Setting directory to $1"
 			fi
-      if [ "$1" == "--test_port" ]; then
-        shift
-        PORT_TEST="$1"
-			  shift
-      fi
+			if [ "$1" == "--test_port" ]; then
+				shift
+				PORT_TEST="$1"
+				shift
+				echo "Setting test port to $PORT_TEST"
+			fi
+			if [ "$1" == "--after" ]; then
+				shift
+				AFTER="$1"
+				shift
+				echo "Setting after to $AFTER"
+			fi
 		done
 	}
 	ii() { echo "II $(date) $1"; }
@@ -227,6 +239,7 @@ testRun() {
 
 ##############################################
 MLU_LIMIT=${MLU_LIMIT:-1000}
+AFTER=1
 TESTER_USER=${TESTER_USER:-admin}
 TESTER_PASS=${TESTER_PASS:-admin}
 PROTOCOL=${MLU_PROTOCOL:-http}
