@@ -1,0 +1,12 @@
+{
+  "name": "ml-unittest-shellrunner",
+  "version": "1.0.0",
+  "description": "Run unit tests from bash",
+  "main": "index.js",
+  "scripts": {
+    "test:on-folder": "bash scripts/test_ml-unittest-runner.sh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
